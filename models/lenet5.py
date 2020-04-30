@@ -15,8 +15,8 @@ class LeNet5(nn.Module):
         self.avgP2 = nn.AvgPool2d(2)
         # Fully connected layers (3)
         # parameters: (input size, output size)
-        self.fc1 = nn.Linear(856, 594)
-        self.fc2 = nn.Linear(594, 128)
+        self.fc1 = nn.Linear(1024, 512)
+        self.fc2 = nn.Linear(512, 128)
         self.fc3 = nn.Linear(128, 10)
 
     def forward(self, x): # Linking all the layers together

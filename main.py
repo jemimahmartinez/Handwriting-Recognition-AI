@@ -65,17 +65,27 @@ def main():
     device = torch.device("cuda" if use_cuda else "cpu")
 
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
-    train_loader = torch.utils.data.DataLoader(
-        datasets.hasyv2('../data', train=True, download=True,
-                       transform=transforms.Compose([
-                           transforms.ToTensor()
-                       ])),
-        batch_size=151410, shuffle=True, **kwargs) # 90% of 168,233
-    test_loader = torch.utils.data.DataLoader(
-        datasets.hasyv2('../data', train=False, transform=transforms.Compose([
-            transforms.ToTensor()
-        ])),
-        batch_size=16823, shuffle=True, **kwargs) # 10% of 168,233
+
+    # --- Different ways to load the data ---
+    # train_loader = torch.utils.data.DataLoader(
+    #     datasets.hasyv2('../data', train=True, download=True,
+    #                    transform=transforms.Compose([
+    #                        transforms.ToTensor()
+    #                    ])),
+    #     batch_size=151410, shuffle=True, **kwargs) # 90% of 168,233
+    # test_loader = torch.utils.data.DataLoader(
+    #     datasets.hasyv2('../data', train=False, transform=transforms.Compose([
+    #         transforms.ToTensor()
+    #     ])),
+    #     batch_size=16823, shuffle=True, **kwargs) # 10% of 168,233
+
+    # train_loader = torch.from_numpy(ndarray=data_array)
+    # train_loader = hasy_tools.load_data(mode='fold-1', image_dim_ordering='tf')
+
+    train_data = torchvision.datasets.ImageFolder('./data/hasyv2/hasy-data')
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=151410, shuffle=True, **kwargs)
+    test_data = torchvision.datasets.ImageFolder('./data/hasyv2/hasy-data')
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=16823, shuffle=True, **kwargs)
 
     # get some random training images
     dataiter = iter(train_loader)
@@ -83,7 +93,7 @@ def main():
     # img = torchvision.utils.make_grid(images)
     # imsave(img)
 
-    # Build network and run
+    # Build network (only lenet5 for now) and run
     model = LeNet5().to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
@@ -94,4 +104,4 @@ def main():
         scheduler.step()
 
     if save_model:
-        torch.save(model.state_dict(), "./results/mnist_cnn.pt")
+        torch.save(model.state_dict(), "./results/hasyv2_cnn.pt")
