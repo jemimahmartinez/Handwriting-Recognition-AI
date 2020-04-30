@@ -53,6 +53,7 @@ def test(model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
 
 def main():
+    print('very beginning hello')
     epoches = 14
     gamma = 0.7
     log_interval = 10
@@ -97,11 +98,17 @@ def main():
     model = LeNet5().to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
+    print('before for loop with epoch')
     for epoch in range(1, epoches + 1):
+        print('after for loop with epoch')
         train_lenet5(log_interval, model, device, train_loader, optimizer, epoch)
 
         test(model, device, test_loader)
         scheduler.step()
 
     if save_model:
+        print('after save_model')
         torch.save(model.state_dict(), "./results/hasyv2_cnn.pt")
+
+if __name__ == '__main__':
+    main()
