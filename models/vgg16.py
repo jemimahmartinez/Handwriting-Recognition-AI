@@ -7,7 +7,7 @@ class VGG16(nn.Module):
     def __init__(self):
         super(VGG16, self).__init__()
         
-        # Convolutional layers (5) 3x3
+        # Convolutional layers (16) 3x3
         # 1: input channels 32: output channels, 3: kernel size, 1: stride
         self.conv1 = nn.Conv2d(1, 32, 3, 1)
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
@@ -46,11 +46,14 @@ class VGG16(nn.Module):
 
     def forward(self, x):
         x = conv2max1(self, x)
+        x = conv2max1(self, x)
         # x = self.conv1(x)
         # x = F.relu(x)
         # x = self.conv2(x)
         # x = F.relu(x)
         # x = self.maxP1(x)
+        x = conv3max1(self, x)
+        x = conv3max1(self, x)
         x = conv3max1(self, x)
         # x = self.conv3(x)
         # x = F.relu(x)
@@ -62,9 +65,13 @@ class VGG16(nn.Module):
 
         x = self.dropout1(x)
         x = torch.flatten(x, 1)
+
+        # Making Full Connections
         x = self.fc1(x)
         x = F.relu(x)
         x = self.dropout2(x)
         x = self.fc2(x)
+        x = F.relu(x)
         output = F.log_softmax(x, dim=1)
+
         return output
