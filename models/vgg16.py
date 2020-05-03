@@ -26,6 +26,7 @@ class VGG16(nn.Module):
         self.fc2 = nn.Linear(594, 128)
         self.fc3 = nn.Linear(128, 10)
 
+    # First Set of convolutions
     def conv2max1(self, x):
         x = self.conv1(x)
         x = F.relu(x)
@@ -34,6 +35,7 @@ class VGG16(nn.Module):
         x = self.maxP1(x)
         return x
 
+    # Second Set of convolutions
     def conv3max1(self, x):
         x = self.conv3(x)
         x = F.relu(x)
@@ -69,9 +71,11 @@ class VGG16(nn.Module):
         # Making Full Connections
         x = self.fc1(x)
         x = F.relu(x)
-        x = self.dropout2(x)
+        # x = self.dropout2(x)
         x = self.fc2(x)
         x = F.relu(x)
-        output = F.log_softmax(x, dim=1)
-
+        x = self.fc3(x)
+        x = F.relu(x)
+        output = F.log_softmax(x, dim=1) # Can test logSoftmax vs. Softmax
+        # output = F.softmax(x, dim=1)
         return output
