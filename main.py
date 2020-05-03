@@ -83,9 +83,13 @@ def main():
     # train_loader = torch.from_numpy(ndarray=data_array)
     # train_loader = hasy_tools.load_data(mode='fold-1', image_dim_ordering='tf')
 
-    train_data = torchvision.datasets.ImageFolder('./data/hasyv2/hasy-data')
+    train_data = torchvision.datasets.ImageFolder(root='./ImageFolder/train', transform=transforms.Compose([
+        transforms.ToTensor()
+    ]))
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=151410, shuffle=True, **kwargs)
-    test_data = torchvision.datasets.ImageFolder('./data/hasyv2/hasy-data')
+    test_data = torchvision.datasets.ImageFolder(root='./ImageFolder/test', transform=transforms.Compose([
+        transforms.ToTensor()
+    ]))
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=16823, shuffle=True, **kwargs)
 
     # get some random training images
