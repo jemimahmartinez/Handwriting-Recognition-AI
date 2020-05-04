@@ -7,7 +7,7 @@ class LeNet5(nn.Module):
         super(LeNet5, self).__init__()
         # Convolutional layers (2) 5x5
         # parameters: (input channels, output channels, kernel size, stride)
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        self.conv1 = nn.Conv2d(3, 32, 3, 1) #input was 1
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
         # Average pooling layers (2) 2x2
         # parameters: (kernel size)

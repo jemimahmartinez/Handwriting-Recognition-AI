@@ -62,6 +62,7 @@ def main():
 
     # Check whether CUDA can be used
     use_cuda = torch.cuda.is_available()
+    print(use_cuda)
     # Use CUDA if possible
     device = torch.device("cuda" if use_cuda else "cpu")
 
