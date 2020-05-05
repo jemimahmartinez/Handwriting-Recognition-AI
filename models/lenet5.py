@@ -7,17 +7,17 @@ class LeNet5(nn.Module):
         super(LeNet5, self).__init__()
         # Convolutional layers (2) 5x5
         # parameters: (input channels, output channels, kernel size, stride)
-        self.conv1 = nn.Conv2d(3, 32, 3, 1) #input was 1
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.conv1 = nn.Conv2d(3, 32, 5, 1)
+        self.conv2 = nn.Conv2d(32, 64, 5, 1)
         # Average pooling layers (2) 2x2
         # parameters: (kernel size)
         self.avgP1 = nn.AvgPool2d(2)
         self.avgP2 = nn.AvgPool2d(2)
         # Fully connected layers (3)
         # parameters: (input size, output size)
-        self.fc1 = nn.Linear(1024, 512)
-        self.fc2 = nn.Linear(512, 128)
-        self.fc3 = nn.Linear(128, 10)
+        self.fc1 = nn.Linear(1024, 512) #2952, 1476
+        self.fc2 = nn.Linear(512, 128) #1476, 738
+        self.fc3 = nn.Linear(128, 10) #738, 369
 
     def forward(self, x): # Linking all the layers together
         x = self.conv1(x)
