@@ -6,7 +6,7 @@ from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from models.lenet5 import LeNet5
 import torch.nn.functional as F
-# import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 import hasy_tools
@@ -53,7 +53,6 @@ def test(model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
 
 def main():
-    print('very beginning hello')
     epoches = 10 #14
     gamma = 0.7
     log_interval = 10
@@ -62,28 +61,13 @@ def main():
 
     # Check whether CUDA can be used
     use_cuda = torch.cuda.is_available()
-    print(use_cuda, 'use_cuda')
+    print(use_cuda, 'use cuda')
     # Use CUDA if possible
     device = torch.device("cuda" if use_cuda else "cpu")
 
     kwargs = {'num_workers': 1, 'pin_memory': False} if use_cuda else {} #pin_memory : True
 
-    # --- Different ways to load the data ---
-    # train_loader = torch.utils.data.DataLoader(
-    #     datasets.hasyv2('../data', train=True, download=True,
-    #                    transform=transforms.Compose([
-    #                        transforms.ToTensor()
-    #                    ])),
-    #     batch_size=151410, shuffle=True, **kwargs) # 90% of 168,233
-    # test_loader = torch.utils.data.DataLoader(
-    #     datasets.hasyv2('../data', train=False, transform=transforms.Compose([
-    #         transforms.ToTensor()
-    #     ])),
-    #     batch_size=16823, shuffle=True, **kwargs) # 10% of 168,233
-
-    # train_loader = torch.from_numpy(ndarray=data_array)
-    # train_loader = hasy_tools.load_data(mode='fold-1', image_dim_ordering='tf')
-
+    # --- Load the data ---
     train_data = torchvision.datasets.ImageFolder(root='./ImageFolder/train', transform=transforms.Compose([
         transforms.ToTensor()
     ]))
@@ -103,9 +87,7 @@ def main():
     model = LeNet5().to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
-    print('before for loop with epoch')
     for epoch in range(1, epoches + 1):
-        print('after for loop with epoch')
         train_lenet5(log_interval, model, device, train_loader, optimizer, epoch)
 
         test(model, device, test_loader)
