@@ -34,7 +34,7 @@ class VGG16(nn.Module):
         # parameters: (input size, output size)
         self.fc1 = nn.Linear(4096, 4096)
         self.fc2 = nn.Linear(4096, 4096)
-        self.fc3 = nn.Linear(4096, 1000)
+        self.fc3 = nn.Linear(4096, 396)
 
 
     def forward(self, x):
