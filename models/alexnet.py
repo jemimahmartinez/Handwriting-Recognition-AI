@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
+#https://github.com/pytorch/vision/blob/master/torchvision/models/alexnet.py
 # The network should inherit from the nn.module
 class AlexNet(nn.Module):
     def __init__(self):
