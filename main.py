@@ -54,7 +54,7 @@ def test(model, device, test_loader):
 
 def main():
     print('very beginning hello')
-    epoches = 14
+    epoches = 10 #14
     gamma = 0.7
     log_interval = 10
     torch.manual_seed(1)
@@ -63,11 +63,10 @@ def main():
     # Check whether CUDA can be used
     use_cuda = torch.cuda.is_available()
     print(use_cuda, 'use_cuda')
-    print(torch.backends.cudnn.enabled, 'enable cudnn')
     # Use CUDA if possible
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    kwargs = {'num_workers': 1, 'pin_memory': False} if use_cuda else {} #pin_memory : True
 
     # --- Different ways to load the data ---
     # train_loader = torch.utils.data.DataLoader(
@@ -88,11 +87,11 @@ def main():
     train_data = torchvision.datasets.ImageFolder(root='./ImageFolder/train', transform=transforms.Compose([
         transforms.ToTensor()
     ]))
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=151410, shuffle=True, **kwargs)
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=1000, shuffle=True, **kwargs) #151410
     test_data = torchvision.datasets.ImageFolder(root='./ImageFolder/test', transform=transforms.Compose([
         transforms.ToTensor()
     ]))
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=16823, shuffle=True, **kwargs)
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=369, shuffle=True, **kwargs) #16823
 
     # get some random training images
     dataiter = iter(train_loader)

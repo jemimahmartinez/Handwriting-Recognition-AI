@@ -11,26 +11,26 @@ class LeNet5(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, 5, 1)
         # Average pooling layers (2) 2x2
         # parameters: (kernel size)
-        self.avgP1 = nn.AvgPool2d(2)
-        self.avgP2 = nn.AvgPool2d(2)
+        self.avgP1 = nn.AvgPool2d(kernel_size=(2, 2))
+        self.avgP2 = nn.AvgPool2d(kernel_size=(2, 2))
         # Fully connected layers (3)
         # parameters: (input size, output size)
-        self.fc1 = nn.Linear(1024, 512) #2952, 1476
+        self.fc1 = nn.Linear(1600, 512) #1024, 512  2952, 1476
         self.fc2 = nn.Linear(512, 128) #1476, 738
         self.fc3 = nn.Linear(128, 10) #738, 369
 
     def forward(self, x): # Linking all the layers together
         x = self.conv1(x)
-        x = nn.Sigmoid(x) #activation function
+        x = torch.sigmoid(x) #activation function
         x = self.avgP1(x)
         x = self.conv2(x)
-        x = nn.Sigmoid(x) #activation function
+        x = torch.sigmoid(x) #activation function
         x = self.avgP2(x)
         x = torch.flatten(x, 1) # need to flatten the array before the fully connected layers
         x = self.fc1(x)
-        x = nn.Sigmoid(x) #activation function
+        x = torch.sigmoid(x) #activation function
         x = self.fc2(x)
-        x = nn.Sigmoid(x) #activation function
+        x = torch.sigmoid(x) #activation function
         x = self.fc3(x)
         output = F.log_softmax(x, dim=1 ) # used for probability training
         return output
