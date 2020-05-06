@@ -4,7 +4,8 @@ import torch.optim as optim
 import torchvision
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
-from models.lenet5 import LeNet5
+#from models.lenet5 import LeNet5
+from models.vgg16 import VGG16
 import torch.nn.functional as F
 #import matplotlib.pyplot as plt
 import numpy as np
@@ -18,16 +19,18 @@ def imsave(img):
     im = Image.fromarray(npimg)
     im.save("./results/your_file.jpeg")
 
-def train_lenet5(log_interval, model, device, train_loader, optimizer, epoch):
+def train_vgg16(log_interval, model, device, train_loader, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         # zero the parameter gradients
         optimizer.zero_grad()
         # forward + backward + optimize
+        torch.cuda.empty_cache()
         output = model(data)
         loss = F.nll_loss(output, target)
-        loss.backward(); optimizer.step()
+        loss.backward()
+        optimizer.step()
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
@@ -63,39 +66,41 @@ def main():
     use_cuda = torch.cuda.is_available()
     print(use_cuda, 'use cuda')
     # Use CUDA if possible
-    device = torch.device("cuda" if use_cuda else "cpu")
+    device = torch.device("cuda:0" if use_cuda else "cpu")
 
     kwargs = {'num_workers': 1, 'pin_memory': False} if use_cuda else {} #pin_memory : True
 
     # --- Load the data ---
     train_data = torchvision.datasets.ImageFolder(root='./ImageFolder/train', transform=transforms.Compose([
+        transforms.RandomResizedCrop(224),
         transforms.ToTensor()
     ]))
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=1000, shuffle=True, **kwargs) #151410
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=18, shuffle=True, **kwargs) #151410
     test_data = torchvision.datasets.ImageFolder(root='./ImageFolder/test', transform=transforms.Compose([
+        transforms.RandomResizedCrop(224),
         transforms.ToTensor()
     ]))
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=369, shuffle=True, **kwargs) #16823
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=2, shuffle=True, **kwargs) #16823
 
     # get some random training images
     dataiter = iter(train_loader)
     images, labels = dataiter.next()
-    # img = torchvision.utils.make_grid(images)
-    # imsave(img)
+    img = torchvision.utils.make_grid(images)
+    imsave(img)
 
-    # Build network (only lenet5 for now) and run
-    model = LeNet5().to(device)
+    # Build network and run
+    model = VGG16().to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
     for epoch in range(1, epoches + 1):
-        train_lenet5(log_interval, model, device, train_loader, optimizer, epoch)
-
+        torch.cuda.empty_cache()
+        train_vgg16(log_interval, model, device, train_loader, optimizer, epoch)
         test(model, device, test_loader)
         scheduler.step()
 
     if save_model:
         print('after save_model')
-        torch.save(model.state_dict(), "./results/hasyv2_cnn.pt")
+        torch.save(model.state_dict(), "./results/hasyv2_vgg16.pt")
 
 if __name__ == '__main__':
     main()
