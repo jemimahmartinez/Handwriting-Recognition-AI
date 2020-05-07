@@ -10,7 +10,7 @@ import torch.nn.functional as F
 #import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-import hasy_tools
+#import hasy_tools
 
 # functions to show an image
 def imsave(img):
@@ -24,6 +24,8 @@ def train_vgg16(log_interval, model, device, train_loader, optimizer, epoch):
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         # zero the parameter gradients
+        print(data.shape)
+        print(target.shape)
         optimizer.zero_grad()
         # forward + backward + optimize
         torch.cuda.empty_cache()
@@ -66,7 +68,7 @@ def main():
     use_cuda = torch.cuda.is_available()
     print(use_cuda, 'use cuda')
     # Use CUDA if possible
-    device = torch.device("cuda:0" if use_cuda else "cpu")
+    device = torch.device("cuda" if use_cuda else "cpu")
 
     kwargs = {'num_workers': 1, 'pin_memory': False} if use_cuda else {} #pin_memory : True
 
@@ -75,12 +77,12 @@ def main():
         transforms.RandomResizedCrop(224),
         transforms.ToTensor()
     ]))
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=18, shuffle=True, **kwargs) #151410
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True, **kwargs) #151410
     test_data = torchvision.datasets.ImageFolder(root='./ImageFolder/test', transform=transforms.Compose([
         transforms.RandomResizedCrop(224),
         transforms.ToTensor()
     ]))
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=2, shuffle=True, **kwargs) #16823
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True, **kwargs) #16823
 
     # get some random training images
     dataiter = iter(train_loader)

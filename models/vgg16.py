@@ -36,7 +36,7 @@ class VGG16(nn.Module):
 
         # Fully connected layers (3)
         # parameters: (input size, output size)
-        self.fc1 = nn.Linear(25088, 4096)
+        self.fc1 = nn.Linear(7, 4096)
         self.fc2 = nn.Linear(4096, 4096)
         self.fc3 = nn.Linear(4096, 396)
 
