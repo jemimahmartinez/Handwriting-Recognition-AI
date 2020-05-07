@@ -24,12 +24,13 @@ def train_vgg16(log_interval, model, device, train_loader, optimizer, epoch):
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         # zero the parameter gradients
-        print(data.shape)
-        print(target.shape)
+        # print(data.shape)
+        # print(target.shape)
         optimizer.zero_grad()
         # forward + backward + optimize
         torch.cuda.empty_cache()
         output = model(data)
+        output = output.reshape(-1, 1419264)#4257792)
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
@@ -82,7 +83,7 @@ def main():
         transforms.RandomResizedCrop(224),
         transforms.ToTensor()
     ]))
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True, **kwargs) #16823
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=3, shuffle=True, **kwargs) #16823
 
     # get some random training images
     dataiter = iter(train_loader)
