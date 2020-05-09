@@ -30,9 +30,13 @@ class VGG16(nn.Module):
         # Max pooling (kernel_size, stride)
         self.pool = nn.MaxPool2d(2, 2)
 
+        # Dropout - how much it will filter out the input
+        self.dropout1 = nn.Dropout2d(0.5)
+        # self.dropout2 = nn.Dropout2d(0.5)
+
         # Fully connected layers (3)
         # parameters: (input size, output size)
-        self.fc1 = nn.Linear(4096, 4096)
+        self.fc1 = nn.Linear(7, 4096)
         self.fc2 = nn.Linear(4096, 4096)
         self.fc3 = nn.Linear(4096, 396)
 
@@ -80,16 +84,16 @@ class VGG16(nn.Module):
         x = F.relu(x)
         x = self.pool(x)
 
-        x = self.dropout1(x)
-        x = torch.flatten(x, 1)
+        # x = self.dropout1(x)
+        # x = torch.flatten(x, 1)
 
         # Making Full Connections
         x = self.fc1(x)
         x = F.relu(x)
-        x = self.dropout2(x)
+        x = self.dropout1(x)
         x = self.fc2(x)
         x = F.relu(x)
-        x = self.dropout2(x)
+        x = self.dropout1(x)
         x = self.fc3(x)
         x = F.relu(x)
         # output = F.log_softmax(x, dim=1) # Can test logSoftmax vs. Softmax
