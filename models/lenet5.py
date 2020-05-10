@@ -9,10 +9,12 @@ class LeNet5(nn.Module):
         # parameters: (input channels, output channels, kernel size, stride)
         self.conv1 = nn.Conv2d(3, 32, 5, 1)
         self.conv2 = nn.Conv2d(32, 64, 5, 1)
+
         # Average pooling layers (2) 2x2
         # parameters: (kernel size)
         self.avgP1 = nn.AvgPool2d(kernel_size=(2, 2))
         self.avgP2 = nn.AvgPool2d(kernel_size=(2, 2))
+
         # Fully connected layers (3)
         # parameters: (input size, output size)
         self.fc1 = nn.Linear(1600, 512) #1024, 512  2952, 1476

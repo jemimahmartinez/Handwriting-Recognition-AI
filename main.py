@@ -4,9 +4,10 @@ import torch.optim as optim
 import torchvision
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
-from models.lenet5 import LeNet5
+#from models.lenet5 import LeNet5
 #from models.vgg16 import VGG16
 #from models.alexnet import AlexNet
+from models.resnext50 import ResNeXt
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,9 +19,9 @@ def imsave(img):
     npimg = img.numpy()
     npimg = (np.transpose(npimg, (1, 2, 0)) * 255).astype(np.uint8)
     im = Image.fromarray(npimg)
-    im.save("./results/lenet5_img.jpeg")
+    im.save("./results/resnext50_img.jpeg")
 
-def train_lenet(log_interval, model, device, train_loader, optimizer, epoch):
+def train_resnext50(log_interval, model, device, train_loader, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
@@ -31,7 +32,7 @@ def train_lenet(log_interval, model, device, train_loader, optimizer, epoch):
         # forward + backward + optimize
         torch.cuda.empty_cache()
         output = model(data)
-        #output = output.reshape(-1, 369)#11808)#vgg 1419264)#4257792)
+        output = output.reshape(-1, 202752)#alexnet369)#11808)#vgg 1419264)#4257792)
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
@@ -55,6 +56,7 @@ def test(model, device, test_loader, epoch, accuracy_epoch):
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
+            #Collecting figures for the accuracy graph
             accuracy_epoch[0, epoch] = 100. * correct / len(test_loader.dataset)
             accuracy_epoch[1, epoch] = epoch + 1
 
@@ -66,7 +68,7 @@ def test(model, device, test_loader, epoch, accuracy_epoch):
 
 
 def main():
-    epoches = 10 #14
+    epoches = 5#10 #14
     gamma = 0.7
     log_interval = 10
     torch.manual_seed(1)
@@ -77,7 +79,7 @@ def main():
     print(use_cuda, 'use cuda')
     # Use CUDA if possible
     device = torch.device("cuda" if use_cuda else "cpu")
-
+    torch.cuda.empty_cache()
     kwargs = {'num_workers': 1, 'pin_memory': False} if use_cuda else {} #pin_memory : True
 
     # --- Load the data ---
@@ -104,7 +106,7 @@ def main():
     imsave(img)
 
     # Build network and run
-    model = LeNet5().to(device, dtype=torch.float).cuda() #model = VGG16().to(device)
+    model = ResNeXt(block=[3, 4, 6, 3], layers=[3,3,3,1]).to(device, dtype=torch.float).cuda()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 
@@ -113,13 +115,14 @@ def main():
 
     for epoch in range(1, epoches + 1):
         torch.cuda.empty_cache()
-        train_lenet(log_interval, model, device, train_loader, optimizer, epoch)
+        train_resnext50(log_interval, model, device, train_loader, optimizer, epoch)
+        torch.cuda.empty_cache()
         test(model, device, test_loader, epoch, accuracy_epoch)
         scheduler.step()
 
     if save_model:
         print('after save_model')
-        torch.save(model.state_dict(), "./results/hasyv2_lenet5.pt")
+        torch.save(model.state_dict(), "./results/hasyv2_resnext50.pt")
 
     #--- graphs ---
     graph_accuracy = plt.figure()
@@ -128,7 +131,7 @@ def main():
     plt.ylabel('Accuracy')
 
     graph_accuracy.show()
-    graph_accuracy.savefig('results/accuracy_lenet5.jpeg')
+    graph_accuracy.savefig('results/accuracy_resnext50.jpeg')
 
     # graph_loss = plt.figure()
     # plt.plot()

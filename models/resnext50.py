@@ -1,6 +1,8 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import math
+import torch.utils.model_zoo as model_zoo
 
 
 class Bottleneck(nn.Module):
@@ -35,7 +37,7 @@ class Bottleneck(nn.Module):
 
 # The network should inherit from the nn.Module
 class ResNeXt(nn.Module):
-    def __init__(self, block, cardinality=32):
+    def __init__(self, block, layers, cardinality=32):
         super(ResNeXt, self).__init__()
         self.cardinality = cardinality
         self.inplanes = 64
@@ -50,7 +52,7 @@ class ResNeXt(nn.Module):
         self.bn1 = torch.nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
 
         # Make Layers
-        self.layer1 = self._make_layer(block, 64, layers[0])
+        self.layer1 = self._make_layer(block, 64, layers[0], stride=1)
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
@@ -69,7 +71,7 @@ class ResNeXt(nn.Module):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
-    def _make_layer(self, block, planes, stride):
+    def _make_layer(self, block, planes, blocks, stride):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
