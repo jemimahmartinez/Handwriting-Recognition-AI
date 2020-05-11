@@ -11,7 +11,6 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-#import hasy_tools
 
 # functions to show an image
 def imsave(img):
@@ -25,13 +24,10 @@ def train_lenet(log_interval, model, device, train_loader, optimizer, epoch):
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         # zero the parameter gradients
-        # print(data.shape)
-        # print(target.shape)
         optimizer.zero_grad()
         # forward + backward + optimize
         torch.cuda.empty_cache()
         output = model(data)
-        #output = output.reshape(-1, 369)#11808)#vgg 1419264)#4257792)
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
@@ -41,24 +37,25 @@ def train_lenet(log_interval, model, device, train_loader, optimizer, epoch):
                 100. * batch_idx / len(train_loader), loss.item()))
 
 
-
-def test(model, device, test_loader, epoch, accuracy_epoch):
+def test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch):
     model.eval()
     test_loss = 0
     correct = 0
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
+            #
             data = torch.squeeze(data)
             output = model(data)
             test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
-            accuracy_epoch[0, epoch] = 100. * correct / len(test_loader.dataset)
-            accuracy_epoch[1, epoch] = epoch + 1
+            accuracy_epoch[0, epoch - 1] = 100. * correct / len(test_loader.dataset)
+            accuracy_epoch[1, epoch - 1] = epoch
+            loss_epoch[0, epoch - 1] = test_loss
+            loss_epoch[1, epoch - 1] = epoch
 
-    test_loss /= len(test_loader.dataset)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
@@ -66,7 +63,7 @@ def test(model, device, test_loader, epoch, accuracy_epoch):
 
 
 def main():
-    epoches = 10 #14
+    epoches = 3
     gamma = 0.7
     log_interval = 10
     torch.manual_seed(1)
@@ -78,24 +75,37 @@ def main():
     # Use CUDA if possible
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    kwargs = {'num_workers': 1, 'pin_memory': False} if use_cuda else {} #pin_memory : True
+    # kwargs = {'num_workers': 1, 'pin_memory': False} if use_cuda else {} #pin_memory : True
+
 
     # --- Load the data ---
-    train_data = torchvision.datasets.ImageFolder(root='./ImageFolder/train', transform=transforms.Compose([
-        # transforms.RandomResizedCrop(224),
-        transforms.ToTensor()
-    ]))
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=1000, shuffle=True, **kwargs) #151410
-    test_data = torchvision.datasets.ImageFolder(root='./ImageFolder/test', transform=transforms.Compose([
-        # transforms.RandomResizedCrop(224),
-        transforms.ToTensor()
-    ]))
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=369, shuffle=True, **kwargs) #16823
+    # train_data = torchvision.datasets.ImageFolder(root='./ImageFolder/train', transform=transforms.Compose([
+    #     # transforms.RandomResizedCrop(224),
+    #     transforms.ToTensor()
+    # ]))
+    # train_loader = torch.utils.data.DataLoader(
+    #     datasets.MNIST(train_data, batch_size=1000, shuffle=True, **kwargs)) #151410
+    #
+    # test_data = torchvision.datasets.ImageFolder(root='./ImageFolder/test', transform=transforms.Compose([
+    #     # transforms.RandomResizedCrop(224),
+    #     transforms.ToTensor()
+    # ]))
+    # test_loader = torch.utils.data.DataLoader(test_data, batch_size=369, shuffle=True, **kwargs) #16823
 
-    #--- read csv file to get labels ---#
-    # label_file = open('hasy-data-labels.csv', 'r')
-    # image_labels = label_file.read()
-    # print(image_labels, 'labels')
+    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    train_loader = torch.utils.data.DataLoader(
+        datasets.MNIST('./Mnist', train=True, download=True,
+                       transform=transforms.Compose([
+                           transforms.RandomResizedCrop(32),
+                           transforms.ToTensor()
+                       ])),
+        batch_size=64, shuffle=True, **kwargs)
+    test_loader = torch.utils.data.DataLoader(
+        datasets.MNIST('./Mnist', train=False, transform=transforms.Compose([
+            transforms.RandomResizedCrop(32),
+            transforms.ToTensor()
+        ])),
+        batch_size=1000, shuffle=True, **kwargs)
 
     # get some random training images
     dataiter = iter(train_loader)
@@ -104,17 +114,17 @@ def main():
     imsave(img)
 
     # Build network and run
-    model = LeNet5().to(device, dtype=torch.float).cuda() #model = VGG16().to(device)
+    model = LeNet5().to(device, dtype=torch.float).to(device)# model = VGG16().to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 
-    iterations = int(167863/1000) #train_size/batch_size
-    accuracy_epoch = np.empty([2, (epoches + 1)*iterations])
+    accuracy_epoch = np.empty([2, epoches])
+    loss_epoch = np.empty([2, epoches])
 
     for epoch in range(1, epoches + 1):
         torch.cuda.empty_cache()
         train_lenet(log_interval, model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader, epoch, accuracy_epoch)
+        test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch)
         scheduler.step()
 
     if save_model:
@@ -130,13 +140,15 @@ def main():
     graph_accuracy.show()
     graph_accuracy.savefig('results/accuracy_lenet5.jpeg')
 
-    # graph_loss = plt.figure()
-    # plt.plot()
-    # plt.xlabel('Number of training examples')
-    # plt.ylabel('Loss')
-    #
-    # graph_loss.show()
-    # graph_loss.savefig('results/train_loss.jpeg')
+    graph_loss = plt.figure()
+    plt.plot(loss_epoch[1], loss_epoch[0], color='blue')
+    plt.xlabel('Number of epochs')
+    plt.ylabel('Loss')
+
+    graph_loss.show()
+    graph_loss.savefig('results/train_loss.jpeg')
+
 
 if __name__ == '__main__':
     main()
+

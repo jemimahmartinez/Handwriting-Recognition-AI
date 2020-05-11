@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import math
 
 
 class Bottleneck(nn.Module):
@@ -35,7 +36,7 @@ class Bottleneck(nn.Module):
 
 # The network should inherit from the nn.Module
 class ResNeXt(nn.Module):
-    def __init__(self, block, cardinality=32):
+    def __init__(self, block, layers, cardinality=32):
         super(ResNeXt, self).__init__()
         self.cardinality = cardinality
         self.inplanes = 64
@@ -69,7 +70,7 @@ class ResNeXt(nn.Module):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
-    def _make_layer(self, block, planes, stride):
+    def _make_layer(self, block, planes, blocks, stride):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
