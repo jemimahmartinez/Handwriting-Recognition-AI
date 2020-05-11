@@ -11,6 +11,7 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+from sklearn import metrics
 
 # functions to show an image
 def imsave(img):
@@ -36,16 +37,14 @@ def train_lenet(log_interval, model, device, train_loader, optimizer, epoch):
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
+def test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch, y_pred): #y_true
 
-def test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch):
     model.eval()
     test_loss = 0
     correct = 0
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
-            #
-            data = torch.squeeze(data)
             output = model(data)
             test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
@@ -56,6 +55,14 @@ def test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch):
             loss_epoch[0, epoch - 1] = test_loss
             loss_epoch[1, epoch - 1] = epoch
 
+            print('pred', pred)
+            print('target', target)
+
+            y_pred = np.append(y_pred, pred[1].cpu().numpy())
+            # y_true = np.append(y_true, target)
+            # y_pred = np.append(y_pred, pred[1].cpu().numpy())
+
+    test_loss /= len(test_loader.dataset)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
@@ -63,7 +70,7 @@ def test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch):
 
 
 def main():
-    epoches = 3
+    epoches = 1
     gamma = 0.7
     log_interval = 10
     torch.manual_seed(1)
@@ -74,23 +81,6 @@ def main():
     print(use_cuda, 'use cuda')
     # Use CUDA if possible
     device = torch.device("cuda" if use_cuda else "cpu")
-
-    # kwargs = {'num_workers': 1, 'pin_memory': False} if use_cuda else {} #pin_memory : True
-
-
-    # --- Load the data ---
-    # train_data = torchvision.datasets.ImageFolder(root='./ImageFolder/train', transform=transforms.Compose([
-    #     # transforms.RandomResizedCrop(224),
-    #     transforms.ToTensor()
-    # ]))
-    # train_loader = torch.utils.data.DataLoader(
-    #     datasets.MNIST(train_data, batch_size=1000, shuffle=True, **kwargs)) #151410
-    #
-    # test_data = torchvision.datasets.ImageFolder(root='./ImageFolder/test', transform=transforms.Compose([
-    #     # transforms.RandomResizedCrop(224),
-    #     transforms.ToTensor()
-    # ]))
-    # test_loader = torch.utils.data.DataLoader(test_data, batch_size=369, shuffle=True, **kwargs) #16823
 
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     train_loader = torch.utils.data.DataLoader(
@@ -120,16 +110,18 @@ def main():
 
     accuracy_epoch = np.empty([2, epoches])
     loss_epoch = np.empty([2, epoches])
+    #y_true = np.empty([])
+    y_pred = np.empty([])
 
     for epoch in range(1, epoches + 1):
         torch.cuda.empty_cache()
         train_lenet(log_interval, model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch)
+        test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch,  y_pred) #, y_true
         scheduler.step()
 
     if save_model:
         print('after save_model')
-        torch.save(model.state_dict(), "./results/hasyv2_lenet5.pt")
+        torch.save(model.state_dict(), "./results/mnist_lenet5.pt")
 
     #--- graphs ---
     graph_accuracy = plt.figure()
@@ -147,6 +139,11 @@ def main():
 
     graph_loss.show()
     graph_loss.savefig('results/train_loss.jpeg')
+
+    # Print the confusion matrix
+    print(metrics.confusion_matrix(test_loader.target, y_pred))
+    # Print the precision and recall, among other metrics
+    print(metrics.classification_report(test_loader.target[1], y_pred, digits=3))
 
 
 if __name__ == '__main__':
