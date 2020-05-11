@@ -4,10 +4,12 @@ import torch.optim as optim
 import torchvision
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
-#from models.lenet5 import LeNet5
+
+#--- MODELS ---
+from models.lenet5 import LeNet5
 #from models.vgg16 import VGG16
 #from models.alexnet import AlexNet
-from models.resnext50 import ResNeXt
+#from models.resnext50 import ResNeXt
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +21,7 @@ def imsave(img):
     npimg = img.numpy()
     npimg = (np.transpose(npimg, (1, 2, 0)) * 255).astype(np.uint8)
     im = Image.fromarray(npimg)
-    im.save("./results/resnext50_img.jpeg")
+    im.save("./results/lenet5_img.jpeg")
 
 def train_resnext50(log_interval, model, device, train_loader, optimizer, epoch):
     model.train()
@@ -43,7 +45,7 @@ def train_resnext50(log_interval, model, device, train_loader, optimizer, epoch)
 
 
 
-def test(model, device, test_loader, epoch, accuracy_epoch):
+def test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch):
     model.eval()
     test_loss = 0
     correct = 0
@@ -56,9 +58,14 @@ def test(model, device, test_loader, epoch, accuracy_epoch):
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
-            #Collecting figures for the accuracy graph
-            accuracy_epoch[0, epoch] = 100. * correct / len(test_loader.dataset)
-            accuracy_epoch[1, epoch] = epoch + 1
+            # Collecting figures for the accuracy graph
+            accuracy_epoch[0, epoch - 1] = 100. * correct / len(test_loader.dataset)
+            accuracy_epoch[1, epoch - 1] = epoch
+
+            # Collecting figures for the loss graph
+            loss_epoch[0, epoch - 1] = test_loss
+            loss_epoch[1, epoch - 1] = epoch
+
 
     test_loss /= len(test_loader.dataset)
 
@@ -68,7 +75,7 @@ def test(model, device, test_loader, epoch, accuracy_epoch):
 
 
 def main():
-    epoches = 5#10 #14
+    epoches = 5
     gamma = 0.7
     log_interval = 10
     torch.manual_seed(1)
@@ -106,40 +113,44 @@ def main():
     imsave(img)
 
     # Build network and run
-    model = ResNeXt(block=[3, 4, 6, 3], layers=[3,3,3,1]).to(device, dtype=torch.float).cuda()
+    model = LeNet5().to(device, dtype=torch.float).cuda()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 
     iterations = int(167863/1000) #train_size/batch_size
-    accuracy_epoch = np.empty([2, (epoches + 1)*iterations])
+    accuracy_epoch = np.empty([2, epoches])
+    loss_epoch = np.empty([2, epoches])
 
     for epoch in range(1, epoches + 1):
         torch.cuda.empty_cache()
         train_resnext50(log_interval, model, device, train_loader, optimizer, epoch)
         torch.cuda.empty_cache()
-        test(model, device, test_loader, epoch, accuracy_epoch)
+        test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch)
         scheduler.step()
 
     if save_model:
         print('after save_model')
-        torch.save(model.state_dict(), "./results/hasyv2_resnext50.pt")
+        torch.save(model.state_dict(), "./results/hasyv2_lenet5.pt")
 
     #--- graphs ---
+    # Accuracy graph
     graph_accuracy = plt.figure()
     plt.plot(accuracy_epoch[1], accuracy_epoch[0], color='blue')
     plt.xlabel('Number of epochs')
     plt.ylabel('Accuracy')
 
     graph_accuracy.show()
-    graph_accuracy.savefig('results/accuracy_resnext50.jpeg')
+    graph_accuracy.savefig('results/accuracy_lenet5.jpeg')
 
-    # graph_loss = plt.figure()
-    # plt.plot()
-    # plt.xlabel('Number of training examples')
-    # plt.ylabel('Loss')
-    #
-    # graph_loss.show()
-    # graph_loss.savefig('results/train_loss.jpeg')
+    # Loss graph
+    graph_loss = plt.figure()
+    plt.plot(loss_epoch[1], loss_epoch[0], color='blue')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+
+    graph_loss.show()
+    graph_loss.savefig('results/loss_lenet5.jpeg')
+
 
 if __name__ == '__main__':
     main()
