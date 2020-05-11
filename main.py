@@ -7,11 +7,13 @@ from torch.optim.lr_scheduler import StepLR
 from models.lenet5 import LeNet5
 #from models.vgg16 import VGG16
 #from models.alexnet import AlexNet
+#from models.alexnet import AlexNet
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 from sklearn import metrics
+
 
 # functions to show an image
 def imsave(img):
@@ -37,7 +39,7 @@ def train_lenet(log_interval, model, device, train_loader, optimizer, epoch):
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-def test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch, y_pred): #y_true
+def test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch, y_pred, y_true): #y_true
 
     model.eval()
     test_loss = 0
@@ -55,10 +57,13 @@ def test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch, y_pred):
             loss_epoch[0, epoch - 1] = test_loss
             loss_epoch[1, epoch - 1] = epoch
 
-            print('pred', pred)
-            print('target', target)
+            #print('pred', pred)
+            #print('target', target)
 
-            y_pred = np.append(y_pred, pred[1].cpu().numpy())
+            y_pred.extend(pred)
+            y_true.extend(target.view_as(pred))
+            #print('y_pred', y_pred)
+            #print('y_true', y_true)
             # y_true = np.append(y_true, target)
             # y_pred = np.append(y_pred, pred[1].cpu().numpy())
 
@@ -110,13 +115,13 @@ def main():
 
     accuracy_epoch = np.empty([2, epoches])
     loss_epoch = np.empty([2, epoches])
-    #y_true = np.empty([])
-    y_pred = np.empty([])
+    y_true = []
+    y_pred = []
 
     for epoch in range(1, epoches + 1):
         torch.cuda.empty_cache()
         train_lenet(log_interval, model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch,  y_pred) #, y_true
+        test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch, y_pred, y_true) #, y_true
         scheduler.step()
 
     if save_model:
@@ -140,10 +145,12 @@ def main():
     graph_loss.show()
     graph_loss.savefig('results/train_loss.jpeg')
 
+    classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     # Print the confusion matrix
-    print(metrics.confusion_matrix(test_loader.target, y_pred))
+    print(metrics.confusion_matrix(y_true, y_pred))
     # Print the precision and recall, among other metrics
-    print(metrics.classification_report(test_loader.target[1], y_pred, digits=3))
+    print(metrics.classification_report(y_true, y_pred, target_names=classes))
+    # print(metrics.classification_report(, y_pred, digits=3))
 
 
 if __name__ == '__main__':
