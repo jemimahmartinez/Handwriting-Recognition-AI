@@ -4,9 +4,13 @@ import torch.optim as optim
 import torchvision
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
-from models.lenet5 import LeNet5
+
+#---MODELS---
+#from models.lenet5 import LeNet5
 #from models.vgg16 import VGG16
-#from models.alexnet import AlexNet
+from models.alexnet import AlexNet
+#from models.resnext50 import ResNeXt
+
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,7 +21,7 @@ def imsave(img):
     npimg = img.numpy()
     npimg = (np.transpose(npimg, (1, 2, 0)) * 255).astype(np.uint8)
     im = Image.fromarray(npimg)
-    im.save("./results/lenet5_img.jpeg")
+    im.save("./results/alexnet_img.jpeg")
 
 def train_lenet(log_interval, model, device, train_loader, optimizer, epoch):
     model.train()
@@ -28,6 +32,7 @@ def train_lenet(log_interval, model, device, train_loader, optimizer, epoch):
         # forward + backward + optimize
         torch.cuda.empty_cache()
         output = model(data)
+        output = output.reshape(-1, 369)  # alexnet369)#11808)#vgg 202752)3041280
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
@@ -77,7 +82,6 @@ def main():
 
     # kwargs = {'num_workers': 1, 'pin_memory': False} if use_cuda else {} #pin_memory : True
 
-
     # --- Load the data ---
     # train_data = torchvision.datasets.ImageFolder(root='./ImageFolder/train', transform=transforms.Compose([
     #     # transforms.RandomResizedCrop(224),
@@ -96,16 +100,16 @@ def main():
     train_loader = torch.utils.data.DataLoader(
         datasets.MNIST('./Mnist', train=True, download=True,
                        transform=transforms.Compose([
-                           transforms.RandomResizedCrop(32),
+                           transforms.RandomResizedCrop(224),
                            transforms.ToTensor()
                        ])),
-        batch_size=64, shuffle=True, **kwargs)
+        batch_size=15, shuffle=True, **kwargs)
     test_loader = torch.utils.data.DataLoader(
         datasets.MNIST('./Mnist', train=False, transform=transforms.Compose([
-            transforms.RandomResizedCrop(32),
+            transforms.RandomResizedCrop(224),
             transforms.ToTensor()
         ])),
-        batch_size=1000, shuffle=True, **kwargs)
+        batch_size=15, shuffle=True, **kwargs)
 
     # get some random training images
     dataiter = iter(train_loader)
@@ -114,7 +118,7 @@ def main():
     imsave(img)
 
     # Build network and run
-    model = LeNet5().to(device, dtype=torch.float).to(device)# model = VGG16().to(device)
+    model = AlexNet().to(device, dtype=torch.float).to(device)# model = VGG16().to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 
@@ -124,12 +128,13 @@ def main():
     for epoch in range(1, epoches + 1):
         torch.cuda.empty_cache()
         train_lenet(log_interval, model, device, train_loader, optimizer, epoch)
+        torch.cuda.empty_cache()
         test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch)
         scheduler.step()
 
     if save_model:
         print('after save_model')
-        torch.save(model.state_dict(), "./results/hasyv2_lenet5.pt")
+        torch.save(model.state_dict(), "./results/hasyv2_alexnet.pt")
 
     #--- graphs ---
     graph_accuracy = plt.figure()
@@ -138,7 +143,7 @@ def main():
     plt.ylabel('Accuracy')
 
     graph_accuracy.show()
-    graph_accuracy.savefig('results/accuracy_lenet5.jpeg')
+    graph_accuracy.savefig('results/accuracy_alexnet.jpeg')
 
     graph_loss = plt.figure()
     plt.plot(loss_epoch[1], loss_epoch[0], color='blue')
@@ -146,7 +151,7 @@ def main():
     plt.ylabel('Loss')
 
     graph_loss.show()
-    graph_loss.savefig('results/train_loss.jpeg')
+    graph_loss.savefig('results/loss_alexnet.jpeg')
 
 
 if __name__ == '__main__':

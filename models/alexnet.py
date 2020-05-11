@@ -10,7 +10,7 @@ class AlexNet(nn.Module):
 
         # Convolutional layers (5)
         # parameters(input channels, output channels, kernel size, stride)
-        self.conv1 = nn.Conv2d(3, 64, 11)#, 4)
+        self.conv1 = nn.Conv2d(1, 64, 11)#, 4)
         self.conv2 = nn.Conv2d(64, 192, 5)#, 2)
         self.conv3 = nn.Conv2d(192, 384, 3)#, 1)
         self.conv4 = nn.Conv2d(384, 256, 3)#, 1)

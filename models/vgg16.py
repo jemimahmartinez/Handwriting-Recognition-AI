@@ -9,7 +9,7 @@ class VGG16(nn.Module):
         
         # Convolutional layers (16) 3x3
         # conv layers: (in_channel size, out_channels size, kernel_size, stride, padding)
-        self.conv1_1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)
+        self.conv1_1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
         self.conv1_2 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1)
 
         self.conv2_1 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
@@ -36,7 +36,7 @@ class VGG16(nn.Module):
 
         # Fully connected layers (3)
         # parameters: (input size, output size)
-        self.fc1 = nn.Linear(7, 4096)
+        self.fc1 = nn.Linear(1, 4096) #7, 4096
         self.fc2 = nn.Linear(4096, 4096)
         self.fc3 = nn.Linear(4096, 396)
 
@@ -96,6 +96,6 @@ class VGG16(nn.Module):
         x = self.dropout1(x)
         x = self.fc3(x)
         x = F.relu(x)
-        # output = F.log_softmax(x, dim=1) # Can test logSoftmax vs. Softmax
-        output = F.softmax(x, dim=1)
+        output = F.log_softmax(x, dim=1) # Can test logSoftmax vs. Softmax
+        #output = F.softmax(x, dim=1)
         return output
