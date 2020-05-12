@@ -28,3 +28,7 @@ Precision:
 Recall:
 
 F1-Score:
+
+***NOTE:***
+Our original code for testing the HASYv2 dataset is within the master branch.
+To get to our code for our MNIST dataset, please refer to the 'mnist' branch
