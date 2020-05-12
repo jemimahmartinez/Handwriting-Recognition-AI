@@ -10,11 +10,11 @@ class AlexNet(nn.Module):
 
         # Convolutional layers (5)
         # parameters(input channels, output channels, kernel size, stride)
-        self.conv1 = nn.Conv2d(3, 64, 11)#, 4)
-        self.conv2 = nn.Conv2d(64, 192, 5)#, 2)
-        self.conv3 = nn.Conv2d(192, 384, 3)#, 1)
-        self.conv4 = nn.Conv2d(384, 256, 3)#, 1)
-        self.conv5 = nn.Conv2d(256, 256, 3)#, 1)
+        self.conv1 = nn.Conv2d(1, 64, 11)
+        self.conv2 = nn.Conv2d(64, 192, 5)
+        self.conv3 = nn.Conv2d(192, 384, 3)
+        self.conv4 = nn.Conv2d(384, 256, 3)
+        self.conv5 = nn.Conv2d(256, 256, 3)
 
         # Max Pooling
         # paramters(kernel size)
@@ -24,29 +24,29 @@ class AlexNet(nn.Module):
 
         # Fully Connected layers (3)
         # parameters(input size, output size)
-        self.fc1 = nn.Linear(6400, 4096) #9216, 4096
+        self.fc1 = nn.Linear(6400, 4096)
         self.fc2 = nn.Linear(4096, 4096)
-        self.fc3 = nn.Linear(4096, 369)
+        self.fc3 = nn.Linear(4096, 10)
 
-    def forward(self, x):
+    def forward(self, x): # Linking all the layers together
         x = self.conv1(x)
         x = F.relu(x) # activation function
         x = self.maxP1(x)
         x = self.conv2(x)
-        x = F.relu(x) # activation function
+        x = F.relu(x)
         x = self.maxP2(x)
         x = self.conv3(x)
-        x = F.relu(x) # activation function
+        x = F.relu(x)
         x = self.conv4(x)
-        x = F.relu(x) # activation function
+        x = F.relu(x)
         x = self.conv5(x)
-        x = F.relu(x) # activation function
+        x = F.relu(x)
         x = self.maxP3(x)
         x = torch.flatten(x, 1)
         x = self.fc1(x)
-        x = F.relu(x) # activation function
+        x = F.relu(x)
         x = self.fc2(x)
-        x = F.relu(x)  # activation function
+        x = F.relu(x)
         x = self.fc3(x)
-        output = F.softmax(x, dim=1)
+        output = F.softmax(x, dim=1)  # Softmax used for probability training
         return output

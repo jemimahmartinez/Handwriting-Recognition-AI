@@ -9,7 +9,7 @@ class VGG16(nn.Module):
         
         # Convolutional layers (16) 3x3
         # conv layers: (in_channel size, out_channels size, kernel_size, stride, padding)
-        self.conv1_1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)
+        self.conv1_1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
         self.conv1_2 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1)
 
         self.conv2_1 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
@@ -32,13 +32,12 @@ class VGG16(nn.Module):
 
         # Dropout - how much it will filter out the input
         self.dropout1 = nn.Dropout2d(0.5)
-        # self.dropout2 = nn.Dropout2d(0.5)
 
         # Fully connected layers (3)
         # parameters: (input size, output size)
-        self.fc1 = nn.Linear(7, 4096)
+        self.fc1 = nn.Linear(1, 4096)
         self.fc2 = nn.Linear(4096, 4096)
-        self.fc3 = nn.Linear(4096, 396)
+        self.fc3 = nn.Linear(4096, 10)
 
 
     def forward(self, x):
@@ -83,9 +82,6 @@ class VGG16(nn.Module):
         x = self.conv5_3(x)
         x = F.relu(x)
         x = self.pool(x)
-
-        # x = self.dropout1(x)
-        # x = torch.flatten(x, 1)
 
         # Making Full Connections
         x = self.fc1(x)
