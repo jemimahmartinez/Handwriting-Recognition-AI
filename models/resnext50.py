@@ -36,12 +36,12 @@ class Bottleneck(nn.Module):
 
 # The network should inherit from the nn.Module
 class ResNeXt(nn.Module):
-    def __init__(self, block, layers, cardinality=32):
+    def __init__(self, cardinality=32):
         super(ResNeXt, self).__init__()
         self.cardinality = cardinality
         self.inplanes = 64
         # conv layers: (in_channel size, out_channels size, kernel_size, stride, padding)
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=1)
+        self.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=1)
 
         # Max pooling (kernel_size)
         self.maxP1 = nn.MaxPool2d(3)
@@ -51,10 +51,10 @@ class ResNeXt(nn.Module):
         self.bn1 = torch.nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
 
         # Make Layers
-        self.layer1 = self._make_layer(block, 64, layers[0])
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+        self.layer1 = self._make_layer(Bottleneck, 64, 3, stride=1)
+        self.layer2 = self._make_layer(Bottleneck, 128, 4, stride=2)
+        self.layer3 = self._make_layer(Bottleneck, 256, 6, stride=2)
+        self.layer4 = self._make_layer(Bottleneck, 512, 3, stride=2)
 
         # Fully connected layers (1)
         # parameters: (input size, number of classes)
@@ -104,14 +104,9 @@ class ResNeXt(nn.Module):
         x = x.view(x.size(0), -1)
         # Making Full Connections
         x = self.fc1(x)
-        # output = F.softmax(x, dim=1) # Can test logSoftmax vs. Softmax
         output = F.log_softmax(x, dim=1)
         return output
 
-    def resnext50(**kwargs):
-        model = ResNeXt(Bottleneck, [3, 4, 6, 3], **kwargs)
-        return model
-
-    def forward2(self, x):
-        x = self.resnext50(x)
+    def forward(self, output):
+        x = self.forward1(output)
         return x
