@@ -1,5 +1,8 @@
 # CS302-Python-2020-Group7
 
+***NOTE:***
+Our original code for testing the HASYv2 dataset is within the master branch.
+To get to our code for our MNIST dataset, please refer to the 'mnist' branch
 
 <ins>Purpose of the System:</ins>
 
@@ -20,17 +23,15 @@ From the four models that we implemented, the one we have chosen to pursue is th
 We conducted tests and checks for accuracy and loss as well as a confusion matrix to retrieve values for Precision, Recall, and F1-score.
 
 Accuracy: 74%  
-![Accuracy Graph](./result/accuracy_lenet5.png)
+
+![ ](https://github.com/UOA-CS302-2020/CS302-Python-2020-Group7/blob/master/results/accuracy_lenet5.png)
 
 
 Loss: 0.79
 
-Precision:
+![ ](https://github.com/UOA-CS302-2020/CS302-Python-2020-Group7/blob/master/results/loss_LeNet5.png)
 
-Recall:
 
-F1-Score:
+Precision, Recall, F1 Score:
 
-***NOTE:***
-Our original code for testing the HASYv2 dataset is within the master branch.
-To get to our code for our MNIST dataset, please refer to the 'mnist' branch
+![ ](https://github.com/UOA-CS302-2020/CS302-Python-2020-Group7/blob/master/results/ppf1_lenet5.png)
