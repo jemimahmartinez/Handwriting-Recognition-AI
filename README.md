@@ -20,6 +20,8 @@ From the four models that we implemented, the one we have chosen to pursue is th
 We conducted tests and checks for accuracy and loss as well as a confusion matrix to retrieve values for Precision, Recall, and F1-score.
 
 Accuracy: 74%  
+![Accuracy Graph](./result/accuracy_lenet5.png)
+
 
 Loss: 0.79
 
