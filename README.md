@@ -19,9 +19,12 @@ We have selected 4 different CNN models (LeNet5, AlexNet, VGG16 and ResNeXt) to 
 From the four models that we implemented, the one we have chosen to pursue is the LeNet-5 model. 
 We conducted tests and checks for accuracy and loss as well as a confusion matrix to retrieve values for Precision, Recall, and F1-score.
 
-Accuracy:
-Loss:
-Precision:
-Recall:
-F1-Score:
+Accuracy: 74%  
 
+Loss: 0.79
+
+Precision:
+
+Recall:
+
+F1-Score:
