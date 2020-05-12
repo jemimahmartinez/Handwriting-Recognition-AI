@@ -32,5 +32,5 @@ class LeNet5(nn.Module):
         x = self.fc2(x)
         x = torch.sigmoid(x) #activation function
         x = self.fc3(x)
-        output = F.log_softmax(x, dim=1 ) # used for probability training
+        output = F.log_softmax(x, dim=1)# used for probability training
         return output

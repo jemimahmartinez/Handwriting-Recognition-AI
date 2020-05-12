@@ -4,10 +4,10 @@ import torch.optim as optim
 import torchvision
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
-#from models.lenet5 import LeNet5
+from models.lenet5 import LeNet5
 #from models.vgg16 import VGG16
 #from models.alexnet import AlexNet
-from models.resnext50 import ResNeXt
+#from models.resnext50 import ResNeXt
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,14 +20,12 @@ def imsave(img):
     npimg = img.numpy()
     npimg = (np.transpose(npimg, (1, 2, 0)) * 255).astype(np.uint8)
     im = Image.fromarray(npimg)
-    im.save("./results/ResNext50_img.jpeg")
+    im.save("./results/lenet5_img.jpeg")
 
-def train_ResNext50(log_interval, model, device, train_loader, optimizer, epoch):
+def train(log_interval, model, device, train_loader, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
-        if batch_idx > 1: # Delete after
-            break # Delete after
         # zero the parameter gradients
         optimizer.zero_grad()
         # forward + backward + optimize
@@ -86,13 +84,13 @@ def main():
     train_loader = torch.utils.data.DataLoader(
         datasets.MNIST('./Mnist', train=True, download=True,
                        transform=transforms.Compose([
-                           transforms.RandomResizedCrop(224),
+                           transforms.RandomResizedCrop(32),
                            transforms.ToTensor()
                        ])),
         batch_size=64, shuffle=True, **kwargs)
     test_loader = torch.utils.data.DataLoader(
         datasets.MNIST('./Mnist', train=False, transform=transforms.Compose([
-            transforms.RandomResizedCrop(224),
+            transforms.RandomResizedCrop(32),
             transforms.ToTensor()
         ])),
         batch_size=1000, shuffle=True, **kwargs)
@@ -104,7 +102,7 @@ def main():
     imsave(img)
 
     # Build network and run
-    model = ResNeXt().to(device, dtype=torch.float).to(device)# model = VGG16().to(device)
+    model = LeNet5().to(device, dtype=torch.float).to(device)# model = VGG16().to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 
@@ -115,13 +113,13 @@ def main():
 
     for epoch in range(1, epoches + 1):
         torch.cuda.empty_cache()
-        train_ResNext50(log_interval, model, device, train_loader, optimizer, epoch)
+        train(log_interval, model, device, train_loader, optimizer, epoch)
         test(model, device, test_loader, epoch, accuracy_epoch, loss_epoch, y_pred, y_true) #, y_true
         scheduler.step()
 
     if save_model:
         print('after save_model')
-        torch.save(model.state_dict(), "./results/mnist_ResNext50.pt")
+        torch.save(model.state_dict(), "./results/mnist_LeNet5.pt")
 
     #--- graphs ---
     graph_accuracy = plt.figure()
@@ -130,7 +128,7 @@ def main():
     plt.ylabel('Accuracy')
 
     graph_accuracy.show()
-    graph_accuracy.savefig('results/accuracy_ResNext50.jpeg')
+    graph_accuracy.savefig('results/accuracy_LeNet5.jpeg')
 
     graph_loss = plt.figure()
     plt.plot(loss_epoch[1], loss_epoch[0], color='blue')
@@ -145,7 +143,7 @@ def main():
     print(metrics.confusion_matrix(y_true, y_pred))
     # Print the precision and recall, among other metrics
     print(metrics.classification_report(y_true, y_pred, target_names=classes))
-    # print(metrics.classification_report(, y_pred, digits=3))
+
 
 
 if __name__ == '__main__':
